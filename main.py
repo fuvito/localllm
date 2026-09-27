@@ -46,6 +46,12 @@ def load_knowledge(path: str) -> str:
         gf = "Yes" if s["gluten_free"] else "No"
         lines.append(f"- {s['name']} ${s['price']} | Vegetarian: {veg} | Vegan: {vegan} | Gluten-Free: {gf}")
 
+    lines += ["", "Drinks (non-alcoholic):"]
+    for d in kb["drinks"]:
+        vegan = "Yes" if d["vegan"] else "No"
+        gf = "Yes" if d["gluten_free"] else "No"
+        lines.append(f"- {d['name']} ${d['price']} | Vegan: {vegan} | Gluten-Free: {gf}")
+
     lines += [
         "",
         "RULES:",

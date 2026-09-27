@@ -43,6 +43,28 @@ pizzas:
     vegetarian: false
     vegan: false
 
+drinks:
+  - name: Cola
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Diet Cola
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Lemonade
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Sparkling Water
+    price: 1
+    vegan: true
+    gluten_free: true
+  - name: Orange Juice
+    price: 3
+    vegan: true
+    gluten_free: true
+
 sides:
   - name: Garlic Bread
     price: 4
