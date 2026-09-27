@@ -144,10 +144,16 @@ def load_knowledge(path: str) -> tuple[str, str]:
 
 def load_model(cfg: dict) -> Llama:
     print(f"Loading model: {cfg['path']}")
+    n_gpu_layers = cfg.get("n_gpu_layers", 0)
+    if n_gpu_layers:
+        print(f"  GPU offload: {n_gpu_layers} layers")
     model = Llama(
         model_path=cfg["path"],
         n_ctx=cfg["n_ctx"],
         n_threads=cfg["n_threads"],
+        n_gpu_layers=n_gpu_layers,
+        n_batch=cfg.get("n_batch", 512),
+        flash_attn=cfg.get("flash_attn", False),
         verbose=False,
     )
     print("Model ready.")
