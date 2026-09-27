@@ -3,7 +3,9 @@ name = "localllm"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
+    "fastapi",
     "huggingface-hub>=2.0.0",
     "llama-cpp-python",
     "pyyaml",
+    "uvicorn",
 ]
