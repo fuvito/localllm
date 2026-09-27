@@ -4,7 +4,7 @@
 - [x] Bootstrap project structure (CLAUDE.md, BACKLOG.md, main.py)
 
 ## Up Next
-- [ ] Interactive REPL loop so users can chat continuously instead of running fixed test queries
+- [x] Interactive REPL loop so users can chat continuously instead of running fixed test queries
 - [ ] Accept model path and parameters (n_ctx, n_threads, temperature) as CLI args
 - [ ] Externalize system prompt / knowledge base to a separate text or YAML file
 
