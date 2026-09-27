@@ -72,6 +72,27 @@ export default function ChatPage() {
     }
   }
 
+  const downloadTranscript = () => {
+    const name = restaurant?.name ?? 'Assistant'
+    const date = new Date().toLocaleString()
+    const lines = [
+      `Chat with ${name}`,
+      `Date: ${date}`,
+      '',
+      `${name}: Welcome to ${name}! How can I help you today?`,
+      ...messages.map(m =>
+        m.role === 'assistant' ? `${name}: ${m.content}` : `You: ${m.content}`
+      ),
+    ]
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `chat-${name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className={`chat-container ${fullscreen ? 'fullscreen' : ''}`}>
       <header className="chat-header">
@@ -80,6 +101,14 @@ export default function ChatPage() {
         </button>
         <span className="logo">{restaurant?.icon ?? '🍽️'}</span>
         <h1>{restaurant?.name ?? '…'}</h1>
+        <button
+          className="fullscreen-btn"
+          onClick={downloadTranscript}
+          disabled={messages.length === 0}
+          title="Download transcript"
+        >
+          ⬇
+        </button>
         <button
           className="fullscreen-btn"
           onClick={() => setFullscreen(f => !f)}
