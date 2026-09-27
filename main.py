@@ -1,54 +1,70 @@
+import yaml
 from llama_cpp import Llama
 
 # ── Model config ──────────────────────────────────────────────────────────────
 MODEL_PATH = "./google_gemma-4-E4B-it-Q4_K_M.gguf"
+KNOWLEDGE_PATH = "./knowledge.yaml"
 N_CTX = 8192
 N_THREADS = 4
 MAX_TOKENS = 250
 TEMPERATURE = 0.5
 
-# ── Knowledge base / system prompt ───────────────────────────────────────────
-SYSTEM_PROMPT = """You are a helpful assistant for Luigi's Pizza. Use ONLY the facts below to answer. Do not make up information.
-
-FACTS:
-
-Hours: Monday to Sunday, 11:00 AM to 10:00 PM.
-To order: visit us in person or call during opening hours.
-
-Crust options:
-- Standard crust (default)
-- Gluten-Free crust: +$3 — contains eggs, NOT vegan
-
-Pizzas (all can be made Gluten-Free for +$3):
-- Margherita $12 — tomato, mozzarella, basil | Vegetarian: Yes | Vegan: No (cheese)
-- Pepperoni $14 — tomato, mozzarella, pepperoni | Vegetarian: No | Vegan: No
-- BBQ Chicken $15 — BBQ sauce, chicken, red onion | Vegetarian: No | Vegan: No
-- Veggie Supreme $14 — tomato, mozzarella, peppers, mushrooms, olives | Vegetarian: Yes | Vegan: No (cheese)
-- Meat Lovers $16 — tomato, mozzarella, pepperoni, sausage, bacon | Vegetarian: No | Vegan: No
-
-Sides:
-- Garlic Bread $4 | Vegetarian: Yes | Vegan: Yes | Gluten-Free: No
-- Fries $4 | Vegetarian: Yes | Vegan: Yes | Gluten-Free: Yes
-- Caesar Salad $7 | Vegetarian: Yes | Vegan: No (dressing contains anchovies) | Gluten-Free: Yes
-- Mozzarella Sticks $6 | Vegetarian: Yes | Vegan: No | Gluten-Free: No
-- Buffalo Wings $9 | Vegetarian: No | Vegan: No | Gluten-Free: Yes
-
-RULES:
-- Always reply in the same language the customer used.
-- Keep responses to 1-2 sentences maximum.
-- Directly answer the customer's specific question first, then provide the relevant fact if helpful.
-- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.
-- SAFETY: If a customer mentions an allergy, celiac disease, or vegan diet alongside gluten-free, always warn that the Gluten-Free crust contains eggs and is NOT vegan — even if they did not ask.
-- When a customer seems ready to order, remind them to visit in person or call during opening hours.
-- If a customer's question is ambiguous, ask one clarifying question before answering.
-- For greetings or compliments, respond warmly and briefly.
-- For farewells, wish them a good meal and a warm goodbye.
-- For complaints, apologize sincerely and offer to help with what you can.
-- If the question is about the restaurant but not covered by the facts (e.g. specific pizza types, toppings, delivery), say something like "I'm sorry, I don't have that detail — please visit us or give us a call during opening hours."
-- If the question has nothing to do with the restaurant, politely redirect: "I can only help with questions about Luigi's Pizza."
-- Never refuse to answer a question that the facts above can answer."""
-
 FORBIDDEN_KEYWORDS = ["ignore", "override", "system prompt", "developer mode"]
+
+# ── Knowledge loader ──────────────────────────────────────────────────────────
+def load_knowledge(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
+        kb = yaml.safe_load(f)
+
+    r = kb["restaurant"]
+    gf_crust = next(c for c in kb["crusts"] if c["name"] == "Gluten-Free")
+
+    lines = [
+        f"You are a helpful assistant for {r['name']}. Use ONLY the facts below to answer. Do not make up information.",
+        "",
+        "FACTS:",
+        "",
+        f"Hours: {r['hours']}.",
+        f"To order: {r['ordering']}.",
+        "",
+        "Crust options:",
+        "- Standard crust (default)",
+        f"- Gluten-Free crust: +${gf_crust['extra_cost']} — {gf_crust['note']}",
+        "",
+        "Pizzas (all can be made Gluten-Free for +$3):",
+    ]
+
+    for p in kb["pizzas"]:
+        veg = "Yes" if p["vegetarian"] else "No"
+        vegan = ("No" + (f" ({p['vegan_note']})" if p.get("vegan_note") else "")) if not p["vegan"] else "Yes"
+        lines.append(f"- {p['name']} ${p['price']} — {p['description']} | Vegetarian: {veg} | Vegan: {vegan}")
+
+    lines += ["", "Sides:"]
+    for s in kb["sides"]:
+        veg = "Yes" if s["vegetarian"] else "No"
+        vegan = ("No" + (f" ({s['vegan_note']})" if s.get("vegan_note") else "")) if not s["vegan"] else "Yes"
+        gf = "Yes" if s["gluten_free"] else "No"
+        lines.append(f"- {s['name']} ${s['price']} | Vegetarian: {veg} | Vegan: {vegan} | Gluten-Free: {gf}")
+
+    lines += [
+        "",
+        "RULES:",
+        "- Always reply in the same language the customer used.",
+        "- Keep responses to 1-2 sentences maximum.",
+        "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
+        "- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.",
+        "- SAFETY: If a customer mentions an allergy, celiac disease, or vegan diet alongside gluten-free, always warn that the Gluten-Free crust contains eggs and is NOT vegan — even if they did not ask.",
+        "- When a customer seems ready to order, remind them to visit in person or call during opening hours.",
+        "- If a customer's question is ambiguous, ask one clarifying question before answering.",
+        "- For greetings or compliments, respond warmly and briefly.",
+        "- For farewells, wish them a good meal and a warm goodbye.",
+        "- For complaints, apologize sincerely and offer to help with what you can.",
+        "- If the question is about the restaurant but not covered by the facts, say: \"I'm sorry, I don't have that detail — please visit us or give us a call during opening hours.\"",
+        "- If the question has nothing to do with the restaurant, politely redirect: \"I can only help with questions about Luigi's Pizza.\"",
+        "- Never refuse to answer a question that the facts above can answer.",
+    ]
+
+    return "\n".join(lines)
 
 # ── Model loader ──────────────────────────────────────────────────────────────
 def load_model() -> Llama:
@@ -63,13 +79,13 @@ def load_model() -> Llama:
     return model
 
 # ── Inference ─────────────────────────────────────────────────────────────────
-def ask(llm: Llama, query: str) -> str:
+def ask(llm: Llama, system_prompt: str, query: str) -> str:
     if any(kw in query.lower() for kw in FORBIDDEN_KEYWORDS):
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
     # Gemma has no system role — merge system prompt into the user turn
     dict_messages = [
-        {"role": "user", "content": f"{SYSTEM_PROMPT}\n\nCustomer: {query}"},
+        {"role": "user", "content": f"{system_prompt}\n\nCustomer: {query}"},
     ]
 
     response = llm.create_chat_completion(
@@ -80,7 +96,7 @@ def ask(llm: Llama, query: str) -> str:
     return response["choices"][0]["message"]["content"]
 
 # ── Chat loop ─────────────────────────────────────────────────────────────────
-def chat_loop(llm: Llama) -> None:
+def chat_loop(llm: Llama, system_prompt: str) -> None:
     print("\nLuigi's Pizza Assistant — type 'quit' or press Ctrl+C to exit.\n")
     while True:
         try:
@@ -93,9 +109,10 @@ def chat_loop(llm: Llama) -> None:
         if query.lower() in {"quit", "exit"}:
             print("Goodbye!")
             break
-        print(f"Assistant: {ask(llm, query)}\n")
+        print(f"Assistant: {ask(llm, system_prompt, query)}\n")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    system_prompt = load_knowledge(KNOWLEDGE_PATH)
     llm = load_model()
-    chat_loop(llm)
+    chat_loop(llm, system_prompt)
