@@ -1,3 +1,4 @@
+from datetime import datetime
 import yaml
 from llama_cpp import Llama
 
@@ -91,6 +92,7 @@ def load_knowledge(path: str) -> str:
         "- Keep responses to 1-2 sentences maximum.",
         "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
         "- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.",
+        "- You know the current date and time. Use it to answer questions like 'are you open now?' or 'what time do you close today?'.",
         "- Only mention how to place an order if the customer explicitly asks how to order or finalize their order.",
         "- If a customer's question is ambiguous, ask one clarifying question before answering.",
         "- For greetings or compliments, respond warmly and briefly.",
@@ -121,7 +123,11 @@ def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict) ->
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
     # Gemma has no system role — merge system prompt into the first user turn only
-    user_content = f"{system_prompt}\n\nCustomer: {query}" if not history else f"Customer: {query}"
+    if not history:
+        now = datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
+        user_content = f"{system_prompt}\n\nCurrent date and time: {now}\n\nCustomer: {query}"
+    else:
+        user_content = f"Customer: {query}"
     history.append({"role": "user", "content": user_content})
 
     response = llm.create_chat_completion(
