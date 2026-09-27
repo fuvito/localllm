@@ -12,6 +12,7 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -52,10 +53,17 @@ export default function App() {
   }
 
   return (
-    <div className="chat-container">
+    <div className={`chat-container ${fullscreen ? 'fullscreen' : ''}`}>
       <header className="chat-header">
         <span className="logo">🍕</span>
         <h1>Luigi's Pizza</h1>
+        <button
+          className="fullscreen-btn"
+          onClick={() => setFullscreen(f => !f)}
+          title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {fullscreen ? '⤓' : '⤢'}
+        </button>
       </header>
 
       <div className="messages">
