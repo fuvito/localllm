@@ -1,15 +1,36 @@
+import argparse
 import yaml
 from llama_cpp import Llama
 
-# ── Model config ──────────────────────────────────────────────────────────────
-MODEL_PATH = "./google_gemma-4-E4B-it-Q4_K_M.gguf"
+CONFIG_PATH = "./config.yaml"
 KNOWLEDGE_PATH = "./knowledge.yaml"
-N_CTX = 8192
-N_THREADS = 4
-MAX_TOKENS = 250
-TEMPERATURE = 0.5
-
 FORBIDDEN_KEYWORDS = ["ignore", "override", "system prompt", "developer mode"]
+
+# ── Config loader ─────────────────────────────────────────────────────────────
+def load_config(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+def resolve_model_cfg(config: dict, args: argparse.Namespace) -> dict:
+    """Merge config model entry with CLI overrides. CLI wins."""
+    name = args.model or config["default_model"]
+    models = config.get("models", {})
+
+    if name in models:
+        cfg = dict(models[name])
+    else:
+        # treat as a direct file path
+        cfg = {"path": name, "n_ctx": 4096, "n_threads": 4, "temperature": 0.5, "max_tokens": 250}
+
+    if args.n_ctx is not None:
+        cfg["n_ctx"] = args.n_ctx
+    if args.threads is not None:
+        cfg["n_threads"] = args.threads
+    if args.temperature is not None:
+        cfg["temperature"] = args.temperature
+    if args.max_tokens is not None:
+        cfg["max_tokens"] = args.max_tokens
+    return cfg
 
 # ── Knowledge loader ──────────────────────────────────────────────────────────
 def load_knowledge(path: str) -> str:
@@ -73,19 +94,19 @@ def load_knowledge(path: str) -> str:
     return "\n".join(lines)
 
 # ── Model loader ──────────────────────────────────────────────────────────────
-def load_model() -> Llama:
-    print("Loading model...")
+def load_model(cfg: dict) -> Llama:
+    print(f"Loading model: {cfg['path']}")
     model = Llama(
-        model_path=MODEL_PATH,
-        n_ctx=N_CTX,
-        n_threads=N_THREADS,
+        model_path=cfg["path"],
+        n_ctx=cfg["n_ctx"],
+        n_threads=cfg["n_threads"],
         verbose=False,
     )
     print("Model ready.")
     return model
 
 # ── Inference ─────────────────────────────────────────────────────────────────
-def ask(llm: Llama, system_prompt: str, query: str, history: list) -> str:
+def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict) -> str:
     if any(kw in query.lower() for kw in FORBIDDEN_KEYWORDS):
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
@@ -95,18 +116,18 @@ def ask(llm: Llama, system_prompt: str, query: str, history: list) -> str:
 
     response = llm.create_chat_completion(
         messages=history,
-        max_tokens=MAX_TOKENS,
-        temperature=TEMPERATURE,
+        max_tokens=cfg["max_tokens"],
+        temperature=cfg["temperature"],
     )
     reply = response["choices"][0]["message"]["content"]
     history.append({"role": "assistant", "content": reply})
     return reply
 
 # ── Chat loop ─────────────────────────────────────────────────────────────────
-def chat_loop(llm: Llama, system_prompt: str) -> None:
+def chat_loop(llm: Llama, system_prompt: str, cfg: dict) -> None:
     print()
     history: list = []
-    welcome = ask(llm, system_prompt, "Greet the customer with a warm welcome message.", history)
+    welcome = ask(llm, system_prompt, "Greet the customer with a warm welcome message.", history, cfg)
     print(f"Assistant: {welcome}\n")
     print("(type 'quit' or press Ctrl+C to exit)\n")
     while True:
@@ -120,10 +141,26 @@ def chat_loop(llm: Llama, system_prompt: str) -> None:
         if query.lower() in {"quit", "exit"}:
             print("Goodbye!")
             break
-        print(f"Assistant: {ask(llm, system_prompt, query, history)}\n")
+        print(f"Assistant: {ask(llm, system_prompt, query, history, cfg)}\n")
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Luigi's Pizza local LLM assistant")
+    parser.add_argument("--model", type=str, default=None,
+                        help="Model name from config.yaml or path to a .gguf file")
+    parser.add_argument("--n-ctx", type=int, default=None, help="Context window size")
+    parser.add_argument("--threads", type=int, default=None, help="CPU threads")
+    parser.add_argument("--temperature", type=float, default=None, help="Sampling temperature")
+    parser.add_argument("--max-tokens", type=int, default=None, help="Max tokens per response")
+    parser.add_argument("--knowledge", type=str, default=KNOWLEDGE_PATH, help="Path to knowledge.yaml")
+    parser.add_argument("--config", type=str, default=CONFIG_PATH, help="Path to config.yaml")
+    return parser.parse_args()
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    system_prompt = load_knowledge(KNOWLEDGE_PATH)
-    llm = load_model()
-    chat_loop(llm, system_prompt)
+    args = parse_args()
+    config = load_config(args.config)
+    cfg = resolve_model_cfg(config, args)
+    system_prompt = load_knowledge(args.knowledge)
+    llm = load_model(cfg)
+    chat_loop(llm, system_prompt, cfg)

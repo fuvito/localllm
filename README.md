@@ -24,15 +24,17 @@ uv sync
 
 That's it. No `requirements.txt` needed — `uv` reads `pyproject.toml` and locks versions in `uv.lock`.
 
-## Model
+## Models
 
-Download a GGUF model and place it in the project root. The default expected filename is:
+Download GGUF models and place them in the `models/` folder (gitignored — not committed):
 
 ```
-qwen2.5-1.5b-instruct-q4_k_m.gguf
+models/
+├── google_gemma-4-E4B-it-Q4_K_M.gguf
+└── qwen2.5-1.5b-instruct-q4_k_m.gguf
 ```
 
-To use a different model, update `MODEL_PATH` at the top of `main.py`.
+Register models in `config.yaml` and switch between them with `--model <name>`.
 
 ## Run
 
@@ -40,35 +42,48 @@ To use a different model, update `MODEL_PATH` at the top of `main.py`.
 uv run python main.py
 ```
 
-Or, if you've activated the virtual environment:
+Use CLI flags to override defaults at runtime:
 
 ```bash
-# Windows
-.venv\Scripts\activate
+# Use a named model from config.yaml
+uv run python main.py --model qwen
 
-# macOS / Linux
-source .venv/bin/activate
+# Use any GGUF file directly
+uv run python main.py --model ./some-model.gguf
 
-python main.py
+# Tune parameters
+uv run python main.py --temperature 0.7 --max-tokens 300 --threads 8
+
+# Custom knowledge or config files
+uv run python main.py --knowledge ./my_menu.yaml --config ./my_config.yaml
 ```
 
 ## Configuration
 
-All tunable parameters are constants at the top of `main.py`:
+Models are registered in `config.yaml`:
 
-| Constant      | Default                                    | Description                        |
-|---------------|--------------------------------------------|------------------------------------|
-| `MODEL_PATH`  | `./qwen2.5-1.5b-instruct-q4_k_m.gguf`     | Path to GGUF model file            |
-| `N_CTX`       | `2048`                                     | Context window size (tokens)       |
-| `N_THREADS`   | `4`                                        | CPU threads for inference          |
-| `MAX_TOKENS`  | `150`                                      | Max tokens per response            |
-| `TEMPERATURE` | `0.2`                                      | Randomness (lower = more focused)  |
+```yaml
+default_model: gemma4
+
+models:
+  gemma4:
+    path: ./google_gemma-4-E4B-it-Q4_K_M.gguf
+    n_ctx: 8192
+    n_threads: 4
+    temperature: 0.5
+    max_tokens: 250
+```
+
+Add a new entry to switch models without touching code. CLI args override config values.
 
 ## Project structure
 
 ```
 localllm/
 ├── main.py          # entry point
+├── config.yaml      # model registry and defaults
+├── knowledge.yaml   # menu, hours, dietary info
+├── models/          # GGUF model files (gitignored)
 ├── pyproject.toml   # dependencies (uv)
 ├── uv.lock          # locked dependency versions
 ├── CLAUDE.md        # notes for AI assistants
