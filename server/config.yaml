@@ -1,4 +1,4 @@
-default_model: qwen3b
+default_model: qwen14b
 
 restaurants:
   - id: luigis
