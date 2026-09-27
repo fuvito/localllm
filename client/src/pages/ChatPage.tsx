@@ -9,7 +9,7 @@ type Message = {
 }
 
 const fmtTime = (d: Date) =>
-  d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+  d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
 
 export default function ChatPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>()
