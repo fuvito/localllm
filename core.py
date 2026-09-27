@@ -159,11 +159,19 @@ def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict, ti
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
     now = datetime.now(ZoneInfo(timezone)).strftime("%A, %B %d, %Y %I:%M %p %Z")
-    # Gemma has no system role — merge system prompt into the first user turn only
-    if not history:
-        user_content = f"{system_prompt}\n\nCurrent date and time: {now}\n\nCustomer: {query}"
-    else:
+
+    if cfg.get("system_role", False):
+        # Model supports a dedicated system role (e.g. Qwen)
+        if not history:
+            history.append({"role": "system", "content": system_prompt})
         user_content = f"[Current date and time: {now}] Customer: {query}"
+    else:
+        # No system role (e.g. Gemma) — merge system prompt into the first user turn
+        if not history:
+            user_content = f"{system_prompt}\n\nCurrent date and time: {now}\n\nCustomer: {query}"
+        else:
+            user_content = f"[Current date and time: {now}] Customer: {query}"
+
     history.append({"role": "user", "content": user_content})
 
     response = llm.create_chat_completion(

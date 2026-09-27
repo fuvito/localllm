@@ -1,4 +1,4 @@
-default_model: gemma4
+default_model: qwen14b
 
 restaurants:
   - id: luigis
@@ -13,14 +13,23 @@ restaurants:
     knowledge: "../data/knowledge_thebitesf.yaml"
 
 models:
+  qwen14b:
+    path: ./models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
+    system_role: true
+    n_ctx: 8192
+    n_threads: 4
+    temperature: 0.5
+    max_tokens: 250
   gemma4:
     path: ./models/google_gemma-4-E4B-it-Q4_K_M.gguf
+    system_role: false
     n_ctx: 8192
     n_threads: 4
     temperature: 0.5
     max_tokens: 250
   qwen:
     path: ./models/qwen2.5-1.5b-instruct-q4_k_m.gguf
+    system_role: true
     n_ctx: 2048
     n_threads: 4
     temperature: 0.5
