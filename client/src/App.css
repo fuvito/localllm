@@ -173,6 +173,22 @@ body {
   max-width: 80%;
 }
 
+.message-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.message-time {
+  font-size: 10px;
+  color: #aaa;
+  padding: 0 2px;
+}
+
+.message.user .message-time {
+  text-align: right;
+}
+
 .message span {
   padding: 10px 14px;
   border-radius: 16px;

@@ -5,7 +5,11 @@ import { API_URL, type Restaurant } from '../api'
 type Message = {
   role: 'user' | 'assistant'
   content: string
+  timestamp: Date
 }
+
+const fmtTime = (d: Date) =>
+  d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
 
 export default function ChatPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>()
@@ -22,6 +26,7 @@ export default function ChatPage() {
   const [fullscreen, setFullscreen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const welcomeTime = useRef(new Date())
 
   // If navigated directly (no router state), fetch restaurant info
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ChatPage() {
     if (!text || loading || !sessionId) return
 
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: text }])
+    setMessages(prev => [...prev, { role: 'user', content: text, timestamp: new Date() }])
     setLoading(true)
 
     try {
@@ -74,11 +79,11 @@ export default function ChatPage() {
         body: JSON.stringify({ session_id: sessionId, message: text }),
       })
       const data = await res.json()
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply, timestamp: new Date() }])
     } catch {
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: 'Could not reach the server. Is it running?' },
+        { role: 'assistant', content: 'Could not reach the server. Is it running?', timestamp: new Date() },
       ])
     } finally {
       setLoading(false)
@@ -99,9 +104,11 @@ export default function ChatPage() {
       `Chat with ${name}`,
       `Date: ${date}`,
       '',
-      `${name}: Welcome to ${name}! How can I help you today?`,
+      `[${fmtTime(welcomeTime.current)}] ${name}: Welcome to ${name}! How can I help you today?`,
       ...messages.map(m =>
-        m.role === 'assistant' ? `${name}: ${m.content}` : `You: ${m.content}`
+        m.role === 'assistant'
+          ? `[${fmtTime(m.timestamp)}] ${name}: ${m.content}`
+          : `[${fmtTime(m.timestamp)}] You: ${m.content}`
       ),
     ]
     const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
@@ -140,11 +147,17 @@ export default function ChatPage() {
 
       <div className="messages">
         <div className="message assistant">
-          <span>Welcome to {restaurant?.name ?? 'our restaurant'}! How can I help you today?</span>
+          <div className="message-bubble">
+            <span>Welcome to {restaurant?.name ?? 'our restaurant'}! How can I help you today?</span>
+            <time className="message-time">{fmtTime(welcomeTime.current)}</time>
+          </div>
         </div>
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.role}`}>
-            <span>{m.content}</span>
+            <div className="message-bubble">
+              <span>{m.content}</span>
+              <time className="message-time">{fmtTime(m.timestamp)}</time>
+            </div>
           </div>
         ))}
         {loading && (
