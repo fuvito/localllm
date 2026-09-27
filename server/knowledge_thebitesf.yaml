@@ -1,0 +1,309 @@
+restaurant:
+  name: "The Bite SF"
+  address: "996 Mission St, San Francisco, CA 94103"
+  phone: "415-757-0414"
+  email: "info@thebitesf.com"
+  website: "thebitesf.com"
+  hours: "Sunday 11am–9pm | Monday–Tuesday 11am–10pm | Wednesday–Saturday 11am–midnight"
+  ordering: "Visit us in person, order online at thebitesf.com, or call us during opening hours"
+  services: "Online ordering and catering available"
+
+menu_sections:
+  - category: "Appetizers"
+    note: "All appetizers come with pita bread (pita is not gluten-free)"
+    items:
+      - name: Classic Hummus
+        price: 8.99
+        description: "Chickpea-based dip"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Avocado Hummus
+        price: 9.99
+        description: "Creamy blend with avocado"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Chipotle Hummus
+        price: 9.99
+        description: "Spiced chickpea dip"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Tzatziki
+        price: 8.99
+        description: "Yogurt-based sauce"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+      - name: Dolma
+        price: 9.99
+        description: "Stuffed grape leaves, served with tzatziki on the side"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+        note: "Tzatziki on the side is not vegan"
+      - name: Baba Ghanoush
+        price: 8.99
+        description: "Roasted eggplant dip"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+
+  - category: "Soup"
+    note: "Served with pita bread (pita is not gluten-free)"
+    items:
+      - name: Lentil Soup
+        price: 7.49
+        description: "Legume-based broth"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+
+  - category: "Salads"
+    note: "Add-on proteins available for all salads"
+    items:
+      - name: The Bite Salad
+        price: 14.49
+        description: "Spring mix, cucumbers, tomatoes, onions, olives, feta cheese, house dressing"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+      - name: Mighty Kale
+        price: 15.99
+        description: "Kale, beets, mandarin, walnuts, dried apricots, house dressing"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Beans' Family
+        price: 15.99
+        description: "Red kidney beans, pinto beans, garbanzo, red onions, bell peppers, corn, sumac, house dressing"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Soma Salad
+        price: 15.99
+        description: "Spring mix, couscous, parmesan, avocado, almonds, house dressing"
+        vegetarian: true
+        vegan: false
+        gluten_free: false
+      - name: Mission Salad
+        price: 16.49
+        description: "Spinach, boiled egg, cherry tomatoes, raisins, avocado, feta cheese, house dressing"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+
+  - category: "Rice Bowls"
+    note: "Gluten-free bowls include rice, house salad, and sauces"
+    items:
+      - name: Grilled Beef Kebab Rice Bowl
+        price: 22.99
+        description: "House-marinated beef kebab with herbs, rice, house salad, feta"
+        vegetarian: false
+        vegan: false
+        gluten_free: true
+      - name: Grilled Chicken Kebab Rice Bowl
+        price: 22.99
+        description: "House-marinated chicken kebab with herbs, rice, house salad, feta"
+        vegetarian: false
+        vegan: false
+        gluten_free: true
+      - name: Chicken Breast Rice Bowl
+        price: 20.99
+        description: "Marinated chicken breast, rice, house salad, feta"
+        vegetarian: false
+        vegan: false
+        gluten_free: true
+      - name: Chicken Gyro Rice Bowl
+        price: 19.99
+        description: "Marinated chicken gyro, rice, house salad, feta"
+        vegetarian: false
+        vegan: false
+        gluten_free: true
+      - name: Lamb & Beef Gyro Rice Bowl
+        price: 19.99
+        description: "Marinated lamb and beef gyro, rice, house salad, feta"
+        vegetarian: false
+        vegan: false
+        gluten_free: false
+      - name: Falafel Rice Bowl
+        price: 19.99
+        description: "Five house-made falafels, rice, house salad"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Grilled Salmon Rice Bowl
+        price: 24.99
+        description: "House-marinated salmon, rice, house salad"
+        vegetarian: false
+        vegan: false
+        gluten_free: true
+      - name: Vegan Gyro Rice Bowl
+        price: 19.99
+        description: "House-made vegan gyro (tofu, mushroom, tomato, onion), rice, house salad"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+
+  - category: "Pita Wraps & Burgers"
+    items:
+      - name: Lamb & Beef Gyro Wrap
+        price: 15.49
+        description: "Hummus, tzatziki, spring mix, lamb & beef gyro, feta, orange sauce"
+        vegetarian: false
+        vegan: false
+        gluten_free: false
+      - name: Chicken Gyro Wrap
+        price: 15.49
+        description: "Hummus, tzatziki, spring mix, chicken gyro, feta, orange sauce"
+        vegetarian: false
+        vegan: false
+        gluten_free: false
+      - name: Falafel Wrap
+        price: 15.49
+        description: "Hummus, spring mix, tomatoes, orange sauce"
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+      - name: Vegan Wrap
+        price: 15.49
+        description: "Hummus, vegan gyro (tofu, mushroom, tomato, onion), spring mix, orange sauce"
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+      - name: Homemade Vegan Burger & Fries
+        price: 18.49
+        description: "Bean and beet patty, tomato, spring mix, vegan mayo. Optional: vegan cheddar +$3, avocado +$3"
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+
+  - category: "Sides"
+    items:
+      - name: French Fries
+        price: 5.99
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Parmesan Truffle Fries
+        price: 8.99
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+      - name: The Bite Fries
+        price: 7.99
+        description: "Paprika, garlic, feta cheese"
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+      - name: Warm Pita Bread
+        price: 2.49
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+      - name: Rice
+        price: 6.99
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+      - name: Falafels (4 pieces)
+        price: 7.99
+        description: "House-made"
+        vegetarian: true
+        vegan: true
+        gluten_free: true
+
+  - category: "Desserts"
+    items:
+      - name: Baklava
+        price: 7.49
+        description: "Traditional homemade Turkish pistachio pastry (2 pieces)"
+        vegetarian: true
+        vegan: false
+        gluten_free: false
+      - name: New York Cheesecake
+        price: 7.99
+        vegetarian: true
+        vegan: false
+        gluten_free: false
+      - name: Chocolate Cake
+        price: 7.99
+        vegetarian: true
+        vegan: false
+        gluten_free: false
+      - name: Gluten-Free Brownie
+        price: 7.99
+        vegetarian: true
+        vegan: false
+        gluten_free: true
+      - name: Vegan Chocolate Brownie
+        price: 7.99
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+      - name: Vegan Belgian Chocolate Cheesecake
+        price: 9.49
+        vegetarian: true
+        vegan: true
+        gluten_free: false
+
+  - category: "Drinks"
+    items:
+      - name: Coke Can
+        price: 2.99
+        vegan: true
+        gluten_free: true
+      - name: Diet Coke Can
+        price: 2.99
+        vegan: true
+        gluten_free: true
+      - name: Sprite
+        price: 2.99
+        vegan: true
+        gluten_free: true
+      - name: Water
+        price: 1.99
+        vegan: true
+        gluten_free: true
+      - name: Sparkling Water
+        price: 3.99
+        vegan: true
+        gluten_free: true
+      - name: Homemade Ayran
+        price: 5.99
+        description: "Salted yogurt drink"
+        vegan: false
+        gluten_free: true
+      - name: Turkish Coffee
+        price: 5.99
+        vegan: false
+        gluten_free: true
+      - name: Organic Coconut Water
+        price: 7.49
+        vegan: true
+        gluten_free: true
+      - name: Homemade Lemonade
+        price: 3.99
+        vegan: true
+        gluten_free: true
+      - name: Homemade Mint Lemonade
+        price: 4.99
+        vegan: true
+        gluten_free: true
+      - name: Homemade Ginger Lemonade
+        price: 4.99
+        vegan: true
+        gluten_free: true
+      - name: Homemade Strawberry Lemonade
+        price: 4.99
+        vegan: true
+        gluten_free: true
+      - name: Kombucha (Pomegranate / Watermelon / Ginger Lemon)
+        price: 6.49
+        vegan: true
+        gluten_free: true
+      - name: Olipop (Strawberry Vanilla / Orange Squeeze / Root Beer)
+        price: 4.99
+        vegan: true
+        gluten_free: true

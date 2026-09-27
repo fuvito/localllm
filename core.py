@@ -3,12 +3,32 @@ from llama_cpp import Llama
 
 FORBIDDEN_KEYWORDS = ["ignore", "override", "system prompt", "developer mode"]
 
+def _flag(item: dict, key: str) -> str:
+    return "Yes" if item.get(key) else "No"
+
+def _item_line(item: dict) -> str:
+    parts = [f"- {item['name']} ${item['price']}"]
+    if item.get("description"):
+        parts.append(f"— {item['description']}")
+    if item.get("note"):
+        parts.append(f"({item['note']})")
+    flags = []
+    if "vegetarian" in item:
+        flags.append(f"Vegetarian: {_flag(item, 'vegetarian')}")
+    if "vegan" in item:
+        flags.append(f"Vegan: {_flag(item, 'vegan')}")
+    if "gluten_free" in item:
+        flags.append(f"Gluten-Free: {_flag(item, 'gluten_free')}")
+    if flags:
+        parts.append("|")
+        parts.append(" | ".join(flags))
+    return " ".join(parts)
+
 def load_knowledge(path: str) -> str:
     with open(path, "r", encoding="utf-8") as f:
         kb = yaml.safe_load(f)
 
     r = kb["restaurant"]
-    gf_crust = next(c for c in kb["crusts"] if c["name"] == "Gluten-Free")
 
     lines = [
         f"You are a helpful assistant for {r['name']}. Use ONLY the facts below to answer. Do not make up information.",
@@ -21,31 +41,48 @@ def load_knowledge(path: str) -> str:
         f"Email: {r['email']}.",
         f"Website: {r['website']}.",
         f"To order: {r['ordering']}.",
-        "",
-        "Crust options:",
-        "- Standard crust (default)",
-        f"- Gluten-Free crust: +${gf_crust['extra_cost']} — {gf_crust['note']}",
-        "",
-        "Pizzas (all can be made Gluten-Free for +$3):",
     ]
 
-    for p in kb["pizzas"]:
-        veg = "Yes" if p["vegetarian"] else "No"
-        vegan = ("No" + (f" ({p['vegan_note']})" if p.get("vegan_note") else "")) if not p["vegan"] else "Yes"
-        lines.append(f"- {p['name']} ${p['price']} — {p['description']} | Vegetarian: {veg} | Vegan: {vegan}")
+    if r.get("services"):
+        lines.append(f"Services: {r['services']}.")
 
-    lines += ["", "Sides:"]
-    for s in kb["sides"]:
-        veg = "Yes" if s["vegetarian"] else "No"
-        vegan = ("No" + (f" ({s['vegan_note']})" if s.get("vegan_note") else "")) if not s["vegan"] else "Yes"
-        gf = "Yes" if s["gluten_free"] else "No"
-        lines.append(f"- {s['name']} ${s['price']} | Vegetarian: {veg} | Vegan: {vegan} | Gluten-Free: {gf}")
+    # ── Generic menu sections (e.g. The Bite) ────────────────────────────────
+    if "menu_sections" in kb:
+        for section in kb["menu_sections"]:
+            lines += ["", f"{section['category']}:"]
+            if section.get("note"):
+                lines.append(f"  Note: {section['note']}")
+            for item in section["items"]:
+                lines.append(_item_line(item))
 
-    lines += ["", "Drinks (non-alcoholic):"]
-    for d in kb["drinks"]:
-        vegan = "Yes" if d["vegan"] else "No"
-        gf = "Yes" if d["gluten_free"] else "No"
-        lines.append(f"- {d['name']} ${d['price']} | Vegan: {vegan} | Gluten-Free: {gf}")
+    # ── Pizza-specific format (Luigi's Pizza) ────────────────────────────────
+    else:
+        gf_crust = next(c for c in kb["crusts"] if c["name"] == "Gluten-Free")
+        lines += [
+            "",
+            "Crust options:",
+            "- Standard crust (default)",
+            f"- Gluten-Free crust: +${gf_crust['extra_cost']} — {gf_crust['note']}",
+            "",
+            "Pizzas (all can be made Gluten-Free for +$3):",
+        ]
+        for p in kb["pizzas"]:
+            veg = "Yes" if p["vegetarian"] else "No"
+            vegan = ("No" + (f" ({p['vegan_note']})" if p.get("vegan_note") else "")) if not p["vegan"] else "Yes"
+            lines.append(f"- {p['name']} ${p['price']} — {p['description']} | Vegetarian: {veg} | Vegan: {vegan}")
+
+        lines += ["", "Sides:"]
+        for s in kb["sides"]:
+            veg = "Yes" if s["vegetarian"] else "No"
+            vegan = ("No" + (f" ({s['vegan_note']})" if s.get("vegan_note") else "")) if not s["vegan"] else "Yes"
+            gf = "Yes" if s["gluten_free"] else "No"
+            lines.append(f"- {s['name']} ${s['price']} | Vegetarian: {veg} | Vegan: {vegan} | Gluten-Free: {gf}")
+
+        lines += ["", "Drinks (non-alcoholic):"]
+        for d in kb["drinks"]:
+            vegan = "Yes" if d["vegan"] else "No"
+            gf = "Yes" if d["gluten_free"] else "No"
+            lines.append(f"- {d['name']} ${d['price']} | Vegan: {vegan} | Gluten-Free: {gf}")
 
     lines += [
         "",
@@ -54,14 +91,13 @@ def load_knowledge(path: str) -> str:
         "- Keep responses to 1-2 sentences maximum.",
         "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
         "- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.",
-        "- SAFETY: If a customer mentions an allergy, celiac disease, or vegan diet alongside gluten-free, always warn that the Gluten-Free crust contains eggs and is NOT vegan — even if they did not ask.",
         "- Only mention how to place an order if the customer explicitly asks how to order or finalize their order.",
         "- If a customer's question is ambiguous, ask one clarifying question before answering.",
         "- For greetings or compliments, respond warmly and briefly.",
         "- For farewells, wish them a good meal and a warm goodbye.",
         "- For complaints, apologize sincerely and offer to help with what you can.",
-        "- If the question is about the restaurant but not covered by the facts, say: \"I'm sorry, I don't have that detail — please visit us or give us a call during opening hours.\"",
-        "- If the question has nothing to do with the restaurant, politely redirect: \"I can only help with questions about Luigi's Pizza.\"",
+        f"- If the question is about the restaurant but not covered by the facts, say: \"I'm sorry, I don't have that detail — please visit us or give us a call.\"",
+        f"- If the question has nothing to do with the restaurant, politely redirect: \"I can only help with questions about {r['name']}.\"",
         "- Never refuse to answer a question that the facts above can answer.",
     ]
 
