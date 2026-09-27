@@ -1,11 +1,17 @@
 restaurant:
   name: "Luigi's Pizza"
-  hours: "Monday to Sunday, 11:00 AM to 10:00 PM"
   address: "42 Napoli Street, Brooklyn, NY 11201"
   phone: "+1 (718) 555-0192"
   email: "hello@luigispizza.com"
   website: "www.luigispizza.com"
   ordering: "Visit us in person, call, or email us during opening hours"
+
+business_hours:
+  timezone: "America/New_York"
+  schedule:
+    - days: [Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday]
+      open: "11:00"
+      close: "22:00"
 
 crusts:
   - name: Standard

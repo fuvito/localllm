@@ -4,9 +4,21 @@ restaurant:
   phone: "415-757-0414"
   email: "info@thebitesf.com"
   website: "thebitesf.com"
-  hours: "Sunday 11am–9pm | Monday–Tuesday 11am–10pm | Wednesday–Saturday 11am–midnight"
   ordering: "Visit us in person, order online at thebitesf.com, or call us during opening hours"
   services: "Online ordering and catering available"
+
+business_hours:
+  timezone: "America/Los_Angeles"
+  schedule:
+    - days: [Sunday]
+      open: "11:00"
+      close: "21:00"
+    - days: [Monday, Tuesday]
+      open: "11:00"
+      close: "22:00"
+    - days: [Wednesday, Thursday, Friday, Saturday]
+      open: "11:00"
+      close: "00:00"
 
 menu_sections:
   - category: "Appetizers"

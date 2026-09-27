@@ -7,5 +7,6 @@ dependencies = [
     "huggingface-hub>=2.0.0",
     "llama-cpp-python",
     "pyyaml",
+    "tzdata",
     "uvicorn",
 ]

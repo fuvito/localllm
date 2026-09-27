@@ -37,12 +37,14 @@ async def lifespan(app: FastAPI):
     for entry in config.get("restaurants", []):
         rid = entry["id"]
         knowledge_path = (SERVER_DIR / entry["knowledge"]).resolve()
+        system_prompt, timezone = load_knowledge(str(knowledge_path))
         restaurants[rid] = {
             "id": rid,
             "name": entry["name"],
             "icon": entry["icon"],
             "description": entry["description"],
-            "system_prompt": load_knowledge(str(knowledge_path)),
+            "system_prompt": system_prompt,
+            "timezone": timezone,
         }
         print(f"  Loaded knowledge: {rid} ({entry['name']})")
 
@@ -127,5 +129,6 @@ async def chat(req: ChatRequest, request: Request):
         req.message,
         session["history"],  # persistent history, grows each turn
         request.app.state.cfg,
+        timezone=restaurant["timezone"],
     )
     return ChatResponse(reply=reply)

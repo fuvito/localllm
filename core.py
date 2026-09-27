@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import yaml
 from llama_cpp import Llama
 
@@ -25,18 +26,53 @@ def _item_line(item: dict) -> str:
         parts.append(" | ".join(flags))
     return " ".join(parts)
 
-def load_knowledge(path: str) -> str:
+def _fmt_time(t: str) -> str:
+    if t == "00:00":
+        return "Midnight"
+    h, m = map(int, t.split(":"))
+    period = "AM" if h < 12 else "PM"
+    h12 = h % 12 or 12
+    return f"{h12}:{m:02d} {period}" if m else f"{h12}:00 {period}"
+
+def _tz_abbr(tz_name: str) -> str:
+    return datetime.now(ZoneInfo(tz_name)).strftime("%Z")
+
+def _format_schedule(schedule: list, tz_abbr: str) -> str:
+    parts = []
+    for entry in schedule:
+        days = entry["days"]
+        open_t = _fmt_time(entry["open"])
+        close_t = _fmt_time(entry["close"])
+        if len(days) == 1:
+            day_str = days[0]
+        elif len(days) == 7:
+            day_str = "Monday–Sunday"
+        else:
+            day_str = f"{days[0]}–{days[-1]}"
+        parts.append(f"{day_str} {open_t}–{close_t}")
+    return " | ".join(parts) + f" ({tz_abbr})"
+
+def load_knowledge(path: str) -> tuple[str, str]:
     with open(path, "r", encoding="utf-8") as f:
         kb = yaml.safe_load(f)
 
     r = kb["restaurant"]
+    timezone = "UTC"
+
+    if "business_hours" in kb:
+        bh = kb["business_hours"]
+        timezone = bh["timezone"]
+        abbr = _tz_abbr(timezone)
+        hours_text = _format_schedule(bh["schedule"], abbr)
+    else:
+        hours_text = r.get("hours", "See website for hours")
 
     lines = [
         f"You are a helpful assistant EXCLUSIVELY for {r['name']}. You have no knowledge of any other restaurant, business, or service. Use ONLY the facts listed below. Do not make up information.",
         "",
         "FACTS:",
         "",
-        f"Hours: {r['hours']}.",
+        f"Hours: {hours_text}.",
         f"Address: {r['address']}.",
         f"Phone: {r['phone']}.",
         f"Email: {r['email']}.",
@@ -92,7 +128,7 @@ def load_knowledge(path: str) -> str:
         "- Keep responses to 1-2 sentences maximum.",
         "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
         "- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.",
-        "- You know the current date and time. Use it to answer questions like 'are you open now?' or 'what time do you close today?'.",
+        "- You know the current date and time in the restaurant's local timezone. Use it to answer questions like 'are you open now?' or 'what time do you close today?'.",
         "- Only mention how to place an order if the customer explicitly asks how to order or finalize their order.",
         "- If a customer's question is ambiguous, ask one clarifying question before answering.",
         "- For greetings or compliments, respond warmly and briefly.",
@@ -103,7 +139,7 @@ def load_knowledge(path: str) -> str:
         "- Never refuse to answer a question that the facts above can answer.",
     ]
 
-    return "\n".join(lines)
+    return "\n".join(lines), timezone
 
 
 def load_model(cfg: dict) -> Llama:
@@ -118,16 +154,16 @@ def load_model(cfg: dict) -> Llama:
     return model
 
 
-def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict) -> str:
+def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict, timezone: str = "UTC") -> str:
     if any(kw in query.lower() for kw in FORBIDDEN_KEYWORDS):
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
+    now = datetime.now(ZoneInfo(timezone)).strftime("%A, %B %d, %Y %I:%M %p %Z")
     # Gemma has no system role — merge system prompt into the first user turn only
     if not history:
-        now = datetime.now().strftime("%A, %B %d, %Y %I:%M %p")
         user_content = f"{system_prompt}\n\nCurrent date and time: {now}\n\nCustomer: {query}"
     else:
-        user_content = f"Customer: {query}"
+        user_content = f"[Current date and time: {now}] Customer: {query}"
     history.append({"role": "user", "content": user_content})
 
     response = llm.create_chat_completion(

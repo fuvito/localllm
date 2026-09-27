@@ -29,10 +29,10 @@ def resolve_model_cfg(config: dict, args: argparse.Namespace) -> dict:
         cfg["max_tokens"] = args.max_tokens
     return cfg
 
-def chat_loop(llm, system_prompt: str, cfg: dict) -> None:
+def chat_loop(llm, system_prompt: str, cfg: dict, timezone: str = "UTC") -> None:
     print()
     history: list = []
-    welcome = ask(llm, system_prompt, "Greet the customer with a warm welcome message.", history, cfg)
+    welcome = ask(llm, system_prompt, "Greet the customer with a warm welcome message.", history, cfg, timezone=timezone)
     print(f"Assistant: {welcome}\n")
     print("(type 'quit' or press Ctrl+C to exit)\n")
     while True:
@@ -46,7 +46,7 @@ def chat_loop(llm, system_prompt: str, cfg: dict) -> None:
         if query.lower() in {"quit", "exit"}:
             print("Goodbye!")
             break
-        print(f"Assistant: {ask(llm, system_prompt, query, history, cfg)}\n")
+        print(f"Assistant: {ask(llm, system_prompt, query, history, cfg, timezone=timezone)}\n")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Luigi's Pizza local LLM assistant")
@@ -64,6 +64,6 @@ if __name__ == "__main__":
     args = parse_args()
     config = load_config(args.config)
     cfg = resolve_model_cfg(config, args)
-    system_prompt = load_knowledge(args.knowledge)
+    system_prompt, timezone = load_knowledge(args.knowledge)
     llm = load_model(cfg)
-    chat_loop(llm, system_prompt, cfg)
+    chat_loop(llm, system_prompt, cfg, timezone=timezone)
