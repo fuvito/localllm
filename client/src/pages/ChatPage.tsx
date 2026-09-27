@@ -54,6 +54,11 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  // Focus input after response arrives (after input is re-enabled)
+  useEffect(() => {
+    if (!loading) inputRef.current?.focus()
+  }, [loading])
+
   const sendMessage = async () => {
     const text = input.trim()
     if (!text || loading || !sessionId) return
@@ -77,7 +82,6 @@ export default function ChatPage() {
       ])
     } finally {
       setLoading(false)
-      inputRef.current?.focus()
     }
   }
 
@@ -158,7 +162,7 @@ export default function ChatPage() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about the menu, hours, or dietary info…"
+          placeholder={messages.length === 0 ? 'Ask about the menu, hours, or dietary info…' : ''}
           ref={inputRef}
           disabled={loading || !sessionId}
           autoFocus
