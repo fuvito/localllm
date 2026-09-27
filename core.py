@@ -31,7 +31,7 @@ def load_knowledge(path: str) -> str:
     r = kb["restaurant"]
 
     lines = [
-        f"You are a helpful assistant for {r['name']}. Use ONLY the facts below to answer. Do not make up information.",
+        f"You are a helpful assistant EXCLUSIVELY for {r['name']}. You have no knowledge of any other restaurant, business, or service. Use ONLY the facts listed below. Do not make up information.",
         "",
         "FACTS:",
         "",
@@ -97,7 +97,7 @@ def load_knowledge(path: str) -> str:
         "- For farewells, wish them a good meal and a warm goodbye.",
         "- For complaints, apologize sincerely and offer to help with what you can.",
         f"- If the question is about the restaurant but not covered by the facts, say: \"I'm sorry, I don't have that detail — please visit us or give us a call.\"",
-        f"- If the question has nothing to do with the restaurant, politely redirect: \"I can only help with questions about {r['name']}.\"",
+        f"- STRICT SCOPE: You only know about {r['name']}. Never reference, compare, or mention any other restaurant or business. If asked about anything outside {r['name']}, say: \"I can only help with questions about {r['name']}.\"",
         "- Never refuse to answer a question that the facts above can answer.",
     ]
 

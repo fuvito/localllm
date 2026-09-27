@@ -3,7 +3,7 @@ import yaml
 from core import load_knowledge, load_model, ask
 
 CONFIG_PATH = "./server/config.yaml"
-KNOWLEDGE_PATH = "./server/knowledge.yaml"
+KNOWLEDGE_PATH = "./data/knowledge_luigis.yaml"
 
 def load_config(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:

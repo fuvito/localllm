@@ -1,5 +1,17 @@
 default_model: gemma4
 
+restaurants:
+  - id: luigis
+    name: "Luigi's Pizza"
+    icon: "🍕"
+    description: "Classic Italian pizza in Brooklyn, NY"
+    knowledge: "../data/knowledge_luigis.yaml"
+  - id: thebitesf
+    name: "The Bite SF"
+    icon: "🥙"
+    description: "Fresh healthy bites in San Francisco, CA"
+    knowledge: "../data/knowledge_thebitesf.yaml"
+
 models:
   gemma4:
     path: ./models/google_gemma-4-E4B-it-Q4_K_M.gguf

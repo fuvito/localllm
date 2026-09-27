@@ -1,0 +1,126 @@
+import { useState, useRef, useEffect } from 'react'
+import { useParams, useLocation, useNavigate } from 'react-router-dom'
+import { API_URL, type Restaurant } from '../api'
+
+type Message = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+export default function ChatPage() {
+  const { restaurantId } = useParams<{ restaurantId: string }>()
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(
+    location.state as Restaurant | null
+  )
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  // If navigated directly (no router state), fetch restaurant info
+  useEffect(() => {
+    if (!restaurant) {
+      fetch(`${API_URL}/restaurants`)
+        .then(r => r.json())
+        .then((list: Restaurant[]) => {
+          const found = list.find(r => r.id === restaurantId)
+          if (found) setRestaurant(found)
+          else navigate('/')
+        })
+        .catch(() => navigate('/'))
+    }
+  }, [])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, loading])
+
+  const sendMessage = async () => {
+    const text = input.trim()
+    if (!text || loading) return
+
+    setInput('')
+    setMessages(prev => [...prev, { role: 'user', content: text }])
+    setLoading(true)
+
+    try {
+      const res = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ restaurant_id: restaurantId, message: text }),
+      })
+      const data = await res.json()
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
+    } catch {
+      setMessages(prev => [
+        ...prev,
+        { role: 'assistant', content: 'Could not reach the server. Is it running?' },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
+
+  return (
+    <div className={`chat-container ${fullscreen ? 'fullscreen' : ''}`}>
+      <header className="chat-header">
+        <button className="back-btn" onClick={() => navigate('/')} title="Back to home">
+          ‹
+        </button>
+        <span className="logo">{restaurant?.icon ?? '🍽️'}</span>
+        <h1>{restaurant?.name ?? '…'}</h1>
+        <button
+          className="fullscreen-btn"
+          onClick={() => setFullscreen(f => !f)}
+          title={fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+        >
+          {fullscreen ? '⤓' : '⤢'}
+        </button>
+      </header>
+
+      <div className="messages">
+        <div className="message assistant">
+          <span>Welcome to {restaurant?.name ?? 'our restaurant'}! How can I help you today?</span>
+        </div>
+        {messages.map((m, i) => (
+          <div key={i} className={`message ${m.role}`}>
+            <span>{m.content}</span>
+          </div>
+        ))}
+        {loading && (
+          <div className="message assistant loading">
+            <span className="dots">
+              <span>.</span><span>.</span><span>.</span>
+            </span>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="input-row">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask about the menu, hours, or dietary info…"
+          disabled={loading}
+          autoFocus
+        />
+        <button onClick={sendMessage} disabled={loading || !input.trim()}>
+          Send
+        </button>
+      </div>
+    </div>
+  )
+}
