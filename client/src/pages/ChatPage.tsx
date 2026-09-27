@@ -15,6 +15,7 @@ export default function ChatPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(
     location.state as Restaurant | null
   )
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -35,13 +36,26 @@ export default function ChatPage() {
     }
   }, [])
 
+  // Create a session when the page loads
+  useEffect(() => {
+    if (!restaurantId) return
+    fetch(`${API_URL}/sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurant_id: restaurantId }),
+    })
+      .then(r => r.json())
+      .then(data => setSessionId(data.session_id))
+      .catch(() => navigate('/'))
+  }, [restaurantId])
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
   const sendMessage = async () => {
     const text = input.trim()
-    if (!text || loading) return
+    if (!text || loading || !sessionId) return
 
     setInput('')
     setMessages(prev => [...prev, { role: 'user', content: text }])
@@ -51,7 +65,7 @@ export default function ChatPage() {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ restaurant_id: restaurantId, message: text }),
+        body: JSON.stringify({ session_id: sessionId, message: text }),
       })
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
@@ -143,10 +157,10 @@ export default function ChatPage() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask about the menu, hours, or dietary info…"
-          disabled={loading}
+          disabled={loading || !sessionId}
           autoFocus
         />
-        <button onClick={sendMessage} disabled={loading || !input.trim()}>
+        <button onClick={sendMessage} disabled={loading || !input.trim() || !sessionId}>
           Send
         </button>
       </div>

@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 import yaml
 
 from fastapi import FastAPI, HTTPException, Request
@@ -45,6 +47,8 @@ async def lifespan(app: FastAPI):
         print(f"  Loaded knowledge: {rid} ({entry['name']})")
 
     app.state.restaurants = restaurants
+    # In-memory session store: session_id -> {restaurant_id, history, created_at}
+    app.state.sessions: dict[str, dict] = {}
     yield
 
 
@@ -58,7 +62,7 @@ app.add_middleware(
 )
 
 
-# ── Models ────────────────────────────────────────────────────────────────────
+# ── Pydantic models ───────────────────────────────────────────────────────────
 
 class RestaurantInfo(BaseModel):
     id: str
@@ -66,8 +70,14 @@ class RestaurantInfo(BaseModel):
     icon: str
     description: str
 
-class ChatRequest(BaseModel):
+class SessionRequest(BaseModel):
     restaurant_id: str
+
+class SessionResponse(BaseModel):
+    session_id: str
+
+class ChatRequest(BaseModel):
+    session_id: str
     message: str
 
 class ChatResponse(BaseModel):
@@ -89,19 +99,33 @@ async def list_restaurants(request: Request):
     ]
 
 
+@app.post("/sessions", response_model=SessionResponse)
+async def create_session(req: SessionRequest, request: Request):
+    if req.restaurant_id not in request.app.state.restaurants:
+        raise HTTPException(status_code=404, detail=f"Restaurant '{req.restaurant_id}' not found.")
+    session_id = str(uuid4())
+    request.app.state.sessions[session_id] = {
+        "restaurant_id": req.restaurant_id,
+        "history": [],
+        "created_at": datetime.utcnow().isoformat(),
+    }
+    return SessionResponse(session_id=session_id)
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest, request: Request):
-    restaurants = request.app.state.restaurants
-    if req.restaurant_id not in restaurants:
-        raise HTTPException(status_code=404, detail=f"Restaurant '{req.restaurant_id}' not found.")
+    sessions = request.app.state.sessions
+    if req.session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found. Please start a new session.")
 
-    restaurant = restaurants[req.restaurant_id]
-    history: list = []
+    session = sessions[req.session_id]
+    restaurant = request.app.state.restaurants[session["restaurant_id"]]
+
     reply = ask(
         request.app.state.llm,
         restaurant["system_prompt"],
         req.message,
-        history,
+        session["history"],  # persistent history, grows each turn
         request.app.state.cfg,
     )
     return ChatResponse(reply=reply)
