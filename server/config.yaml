@@ -1,4 +1,4 @@
-default_model: qwen14b
+default_model: qwen3b
 
 restaurants:
   - id: luigis
@@ -13,6 +13,16 @@ restaurants:
     knowledge: "../data/knowledge_thebitesf.yaml"
 
 models:
+  qwen3b:
+    path: ./models/Qwen2.5-3B-Instruct-Q4_K_M.gguf
+    system_role: true
+    n_ctx: 8192
+    n_threads: 14
+    n_gpu_layers: -1
+    n_batch: 512
+    flash_attn: true
+    temperature: 0.5
+    max_tokens: 250
   qwen14b:
     path: ./models/Qwen2.5-14B-Instruct-Q4_K_M.gguf
     system_role: true
