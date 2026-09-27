@@ -87,10 +87,10 @@ localllm/
 ├── core.py          # shared inference logic
 ├── main.py          # CLI entry point
 ├── server/
-│   └── main.py      # FastAPI server
+│   ├── main.py      # FastAPI server
+│   ├── config.yaml  # model registry and defaults
+│   └── knowledge.yaml  # menu, hours, dietary info
 ├── client/          # React + Vite web client
-├── config.yaml      # model registry and defaults
-├── knowledge.yaml   # menu, hours, dietary info
 ├── models/          # GGUF model files (gitignored)
 ├── pyproject.toml   # Python dependencies (uv)
 ├── uv.lock          # locked dependency versions

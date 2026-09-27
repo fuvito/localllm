@@ -2,8 +2,8 @@ import argparse
 import yaml
 from core import load_knowledge, load_model, ask
 
-CONFIG_PATH = "./config.yaml"
-KNOWLEDGE_PATH = "./knowledge.yaml"
+CONFIG_PATH = "./server/config.yaml"
+KNOWLEDGE_PATH = "./server/knowledge.yaml"
 
 def load_config(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:

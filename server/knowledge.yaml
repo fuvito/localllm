@@ -1,0 +1,94 @@
+restaurant:
+  name: "Luigi's Pizza"
+  hours: "Monday to Sunday, 11:00 AM to 10:00 PM"
+  ordering: "Visit us in person or call during opening hours"
+
+crusts:
+  - name: Standard
+    extra_cost: 0
+    gluten_free: false
+    vegan: true
+  - name: Gluten-Free
+    extra_cost: 3
+    gluten_free: true
+    vegan: false
+    note: "Contains eggs — NOT vegan"
+
+pizzas:
+  - name: Margherita
+    price: 12
+    description: "tomato, mozzarella, basil"
+    vegetarian: true
+    vegan: false
+    vegan_note: "contains cheese"
+  - name: Pepperoni
+    price: 14
+    description: "tomato, mozzarella, pepperoni"
+    vegetarian: false
+    vegan: false
+  - name: BBQ Chicken
+    price: 15
+    description: "BBQ sauce, chicken, red onion"
+    vegetarian: false
+    vegan: false
+  - name: Veggie Supreme
+    price: 14
+    description: "tomato, mozzarella, peppers, mushrooms, olives"
+    vegetarian: true
+    vegan: false
+    vegan_note: "contains cheese"
+  - name: Meat Lovers
+    price: 16
+    description: "tomato, mozzarella, pepperoni, sausage, bacon"
+    vegetarian: false
+    vegan: false
+
+drinks:
+  - name: Cola
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Diet Cola
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Lemonade
+    price: 2
+    vegan: true
+    gluten_free: true
+  - name: Sparkling Water
+    price: 1
+    vegan: true
+    gluten_free: true
+  - name: Orange Juice
+    price: 3
+    vegan: true
+    gluten_free: true
+
+sides:
+  - name: Garlic Bread
+    price: 4
+    vegetarian: true
+    vegan: true
+    gluten_free: false
+  - name: Fries
+    price: 4
+    vegetarian: true
+    vegan: true
+    gluten_free: true
+  - name: Caesar Salad
+    price: 7
+    vegetarian: true
+    vegan: false
+    vegan_note: "dressing contains anchovies"
+    gluten_free: true
+  - name: Mozzarella Sticks
+    price: 6
+    vegetarian: true
+    vegan: false
+    gluten_free: false
+  - name: Buffalo Wings
+    price: 9
+    vegetarian: false
+    vegan: false
+    gluten_free: true

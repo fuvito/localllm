@@ -10,9 +10,9 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from core import load_knowledge, load_model, ask
 
-ROOT = Path(__file__).parent.parent
-CONFIG_PATH = ROOT / "config.yaml"
-KNOWLEDGE_PATH = ROOT / "knowledge.yaml"
+SERVER_DIR = Path(__file__).parent
+CONFIG_PATH = SERVER_DIR / "config.yaml"
+KNOWLEDGE_PATH = SERVER_DIR / "knowledge.yaml"
 
 
 def _load_config() -> dict:
