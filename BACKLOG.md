@@ -9,6 +9,6 @@
 - [x] Externalize system prompt / knowledge base to a separate text or YAML file
 
 ## Ideas / Later
-- [ ] Multi-turn conversation history (pass prior messages back into context)
+- [x] Multi-turn conversation history (pass prior messages back into context)
 - [ ] Swap-able model loader: support multiple GGUF files from a config
 - [ ] Structured output / JSON mode experiments

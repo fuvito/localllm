@@ -54,7 +54,7 @@ def load_knowledge(path: str) -> str:
         "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
         "- You may perform simple arithmetic (addition, multiplication) using the prices in the facts.",
         "- SAFETY: If a customer mentions an allergy, celiac disease, or vegan diet alongside gluten-free, always warn that the Gluten-Free crust contains eggs and is NOT vegan — even if they did not ask.",
-        "- When a customer seems ready to order, remind them to visit in person or call during opening hours.",
+        "- Only mention how to place an order if the customer explicitly asks how to order or finalize their order.",
         "- If a customer's question is ambiguous, ask one clarifying question before answering.",
         "- For greetings or compliments, respond warmly and briefly.",
         "- For farewells, wish them a good meal and a warm goodbye.",
@@ -79,25 +79,30 @@ def load_model() -> Llama:
     return model
 
 # ── Inference ─────────────────────────────────────────────────────────────────
-def ask(llm: Llama, system_prompt: str, query: str) -> str:
+def ask(llm: Llama, system_prompt: str, query: str, history: list) -> str:
     if any(kw in query.lower() for kw in FORBIDDEN_KEYWORDS):
         return "I can only assist you with restaurant menu, hours, and dietary questions."
 
-    # Gemma has no system role — merge system prompt into the user turn
-    dict_messages = [
-        {"role": "user", "content": f"{system_prompt}\n\nCustomer: {query}"},
-    ]
+    # Gemma has no system role — merge system prompt into the first user turn only
+    user_content = f"{system_prompt}\n\nCustomer: {query}" if not history else f"Customer: {query}"
+    history.append({"role": "user", "content": user_content})
 
     response = llm.create_chat_completion(
-        messages=dict_messages,
+        messages=history,
         max_tokens=MAX_TOKENS,
         temperature=TEMPERATURE,
     )
-    return response["choices"][0]["message"]["content"]
+    reply = response["choices"][0]["message"]["content"]
+    history.append({"role": "assistant", "content": reply})
+    return reply
 
 # ── Chat loop ─────────────────────────────────────────────────────────────────
 def chat_loop(llm: Llama, system_prompt: str) -> None:
-    print("\nLuigi's Pizza Assistant — type 'quit' or press Ctrl+C to exit.\n")
+    print()
+    history: list = []
+    welcome = ask(llm, system_prompt, "Greet the customer with a warm welcome message.", history)
+    print(f"Assistant: {welcome}\n")
+    print("(type 'quit' or press Ctrl+C to exit)\n")
     while True:
         try:
             query = input("You: ").strip()
@@ -109,7 +114,7 @@ def chat_loop(llm: Llama, system_prompt: str) -> None:
         if query.lower() in {"quit", "exit"}:
             print("Goodbye!")
             break
-        print(f"Assistant: {ask(llm, system_prompt, query)}\n")
+        print(f"Assistant: {ask(llm, system_prompt, query, history)}\n")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
