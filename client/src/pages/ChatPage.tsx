@@ -21,6 +21,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [fullscreen, setFullscreen] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // If navigated directly (no router state), fetch restaurant info
   useEffect(() => {
@@ -76,6 +77,7 @@ export default function ChatPage() {
       ])
     } finally {
       setLoading(false)
+      inputRef.current?.focus()
     }
   }
 
@@ -157,6 +159,7 @@ export default function ChatPage() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask about the menu, hours, or dietary info…"
+          ref={inputRef}
           disabled={loading || !sessionId}
           autoFocus
         />
