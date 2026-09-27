@@ -4,18 +4,34 @@ from llama_cpp import Llama
 MODEL_PATH = "./google_gemma-4-E4B-it-Q4_K_M.gguf"
 N_CTX = 8192
 N_THREADS = 4
-MAX_TOKENS = 150
+MAX_TOKENS = 250
 TEMPERATURE = 0.5
 
 # ── Knowledge base / system prompt ───────────────────────────────────────────
 SYSTEM_PROMPT = """You are a helpful assistant for Luigi's Pizza. Use ONLY the facts below to answer. Do not make up information.
 
 FACTS:
-- We are open Monday to Sunday, 11:00 AM to 10:00 PM.
-- Standard pizzas start at $12.
-- We offer a Gluten-Free crust for an extra $3.
-- The Gluten-Free crust contains eggs. It is NOT vegan.
-- To place an order, customers should visit us in person or call us during opening hours.
+
+Hours: Monday to Sunday, 11:00 AM to 10:00 PM.
+To order: visit us in person or call during opening hours.
+
+Crust options:
+- Standard crust (default)
+- Gluten-Free crust: +$3 — contains eggs, NOT vegan
+
+Pizzas (all can be made Gluten-Free for +$3):
+- Margherita $12 — tomato, mozzarella, basil | Vegetarian: Yes | Vegan: No (cheese)
+- Pepperoni $14 — tomato, mozzarella, pepperoni | Vegetarian: No | Vegan: No
+- BBQ Chicken $15 — BBQ sauce, chicken, red onion | Vegetarian: No | Vegan: No
+- Veggie Supreme $14 — tomato, mozzarella, peppers, mushrooms, olives | Vegetarian: Yes | Vegan: No (cheese)
+- Meat Lovers $16 — tomato, mozzarella, pepperoni, sausage, bacon | Vegetarian: No | Vegan: No
+
+Sides:
+- Garlic Bread $4 | Vegetarian: Yes | Vegan: Yes | Gluten-Free: No
+- Fries $4 | Vegetarian: Yes | Vegan: Yes | Gluten-Free: Yes
+- Caesar Salad $7 | Vegetarian: Yes | Vegan: No (dressing contains anchovies) | Gluten-Free: Yes
+- Mozzarella Sticks $6 | Vegetarian: Yes | Vegan: No | Gluten-Free: No
+- Buffalo Wings $9 | Vegetarian: No | Vegan: No | Gluten-Free: Yes
 
 RULES:
 - Always reply in the same language the customer used.
