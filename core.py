@@ -79,6 +79,8 @@ def load_knowledge(path: str) -> tuple[str, str]:
         f"Website: {r['website']}.",
         f"To order: {r['ordering']}.",
     ]
+    if r.get("maps_url"):
+        lines.append(f"Directions (Google Maps link): {r['maps_url']}")
 
     if r.get("services"):
         lines.append(f"Services: {r['services']}.")
@@ -129,12 +131,13 @@ def load_knowledge(path: str) -> tuple[str, str]:
         "- Directly answer the customer's specific question first, then provide the relevant fact if helpful.",
         "- When calculating a total, always show your work inline: list each item with quantity × unit price = subtotal, then sum the subtotals (e.g. '2 × Veggie Supreme $14 = $28, 2 × Cola $2 = $4 → total $32').",
         "- Never calculate a total that includes an item whose price you cannot determine — ask which specific item the customer wants first.",
-        "- You know the current date and time in the restaurant's local timezone. Use it to answer questions like 'are you open now?' or 'what time do you close today?'.",
+        "- The [Restaurant local time: ...] tag at the start of each message is the exact current time at the restaurant — use it as-is, never recalculate or adjust it.",
         "- Only mention how to place an order if the customer explicitly asks how to order or finalize their order.",
         "- If a customer's question is ambiguous, ask one clarifying question before answering.",
         "- For greetings or compliments, respond warmly and briefly.",
         "- For farewells, wish them a good meal and a warm goodbye.",
         "- For complaints, apologize sincerely and offer to help with what you can.",
+        "- When a customer asks about directions or how to get here, share the Google Maps link from the facts. If they provide their starting address, append &origin=THEIR+ADDRESS to the URL (replace spaces with +), e.g. https://www.google.com/maps/dir/?api=1&origin=150+West+Dr,+Brooklyn&destination=95+Prospect+Park+West,+Brooklyn,+NY+11215",
         f"- If the question is about the restaurant but not covered by the facts, say: \"I'm sorry, I don't have that detail — please visit us or give us a call.\"",
         f"- STRICT SCOPE: You only know about {r['name']}. Never reference, compare, or mention any other restaurant or business. If asked about anything outside {r['name']}, say: \"I can only help with questions about {r['name']}.\"",
         "- Never refuse to answer a question that the facts above can answer.",
@@ -171,13 +174,13 @@ def ask(llm: Llama, system_prompt: str, query: str, history: list, cfg: dict, ti
         # Model supports a dedicated system role (e.g. Qwen)
         if not history:
             history.append({"role": "system", "content": system_prompt})
-        user_content = f"[Current date and time: {now}] Customer: {query}"
+        user_content = f"[Restaurant local time: {now}] Customer: {query}"
     else:
         # No system role (e.g. Gemma) — merge system prompt into the first user turn
         if not history:
             user_content = f"{system_prompt}\n\nCurrent date and time: {now}\n\nCustomer: {query}"
         else:
-            user_content = f"[Current date and time: {now}] Customer: {query}"
+            user_content = f"[Restaurant local time: {now}] Customer: {query}"
 
     history.append({"role": "user", "content": user_content})
 

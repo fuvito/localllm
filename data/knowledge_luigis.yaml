@@ -1,6 +1,7 @@
 restaurant:
   name: "Luigi's Pizza"
-  address: "42 Napoli Street, Brooklyn, NY 11201"
+  address: "95 Prospect Park West, Brooklyn, NY 11215"
+  maps_url: "https://www.google.com/maps/dir/?api=1&destination=95+Prospect+Park+West,+Brooklyn,+NY+11215"
   phone: "+1 (718) 555-0192"
   email: "hello@luigispizza.com"
   website: "www.luigispizza.com"

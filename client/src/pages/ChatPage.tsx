@@ -11,6 +11,15 @@ type Message = {
 const fmtTime = (d: Date) =>
   d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
 
+function renderWithLinks(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g)
+  return parts.map((part, i) =>
+    part.startsWith('http')
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="chat-link">{part}</a>
+      : part
+  )
+}
+
 export default function ChatPage() {
   const { restaurantId } = useParams<{ restaurantId: string }>()
   const location = useLocation()
@@ -155,7 +164,7 @@ export default function ChatPage() {
         {messages.map((m, i) => (
           <div key={i} className={`message ${m.role}`}>
             <div className="message-bubble">
-              <span>{m.content}</span>
+              <span>{renderWithLinks(m.content)}</span>
               <time className="message-time">{fmtTime(m.timestamp)}</time>
             </div>
           </div>
